@@ -1,0 +1,196 @@
+---
+title: "IndonesiaEnergy"
+author: "Abhishu Karki"
+date: "Feb 18, 2026"
+format:
+  html:
+    self-contained: true
+    theme: flatly
+    toc: false
+    fig-width: 11
+    fig-height: 5.5
+    page-layout: full
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+
+```{r}
+#| label: setup
+
+library(tidyverse)
+library(readxl)
+library(plotly)
+library(scales)
+```
+
+```{r}
+#| label: data-prep
+
+# Data----
+Percapenergy <- read_excel("~/OneDrive - american.edu/_S'26 SEM 2/SIS 750/PS2/per_capita_energ_stacked.xlsx")
+
+Indoenergy <- Percapenergy |>
+  filter(Entity == 'Indonesia') |>
+  mutate(
+    Total_energy = (Coal + Oil + Gas + Hydropower + Wind + Solar + Other_renewables),
+    .after = 9
+  )
+
+# Wrangle----
+energy_source <- c("Coal", "Oil", "Gas", "Hydropower", "Wind", "Solar", "Other_renewables")
+
+energy_df <- Indoenergy |>
+  select("Year", all_of(energy_source)) |>
+  filter(Year >= 1985 & Year <= 2024)
+
+barplot_data <- energy_df |>
+  pivot_longer(cols = -Year, names_to = "Source", values_to = "Share") |>
+  mutate(
+    Share = as.numeric(format(Share, scientific = FALSE)),
+    Source = factor(Source, levels = energy_source)
+  )
+
+# Renewables----
+renewables_data <- barplot_data |>
+  filter(Source %in% c("Hydropower","Solar", "Wind", "Other_renewables"), Year >= 2018)
+```
+
+```{r}
+#| label: colours
+
+energy_colors <- c(
+  Coal= "#2c3e50",Oil = "#c0392b",Gas = "#e67e22",Hydropower = "#2980b9", Wind = "#1abc9c",Solar = "#f1c40f",Other_renewables = "#27ae60"
+  )
+
+energy_labels <- c(
+  Coal = "Coal",
+  Oil = "Oil",
+  Gas = "Natural Gas",
+  Hydropower = "Hydropower",
+  Wind = "Wind",
+  Solar = "Solar",
+  Other_renewables = "Other renewables"
+)
+```
+
+```{r}
+#| label: chart-a
+#| fig-cap: "(a) Full energy mix, 1985–2024"
+
+# Panel A-----
+stacked <- barplot_data |>
+  ggplot(aes(
+    x = Year,y = Share, fill = Source,
+    text = paste0(
+      "<b>", energy_labels[as.character(Source)], "</b><br>",
+      "Year: ", Year, "<br>",
+      "Energy: ", comma(round(Share, 1)), " kWh/person"
+    )
+  )) +
+  geom_bar(width = 1, stat = "identity", position = "stack", alpha = 0.95) +
+  scale_fill_manual(values = energy_colors, labels = energy_labels) +
+  labs(
+    title = "Per capita primary energy consumption by source in Indonesia",
+    subtitle = "Primary energy is measured in kilowatt-hours per person",
+    x = "Year",
+    fill = "Energy source",
+    y = "Per capita primary energy (kWh)",
+    caption = "Data source: Energy Institute – Statistical Review of World Energy (2025)"
+  ) +
+  scale_x_continuous(
+    limits = c(1984.5, 2024.5),
+    breaks = seq(1985, 2024, 10),
+    expand = expansion(mult = c(0, 0))
+  ) +
+  scale_y_continuous(
+    limits = c(0, 11000),
+    labels = comma,
+    expand = expansion(mult = c(0, 0))
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 18, hjust = 0, face = "bold", family = "sans"),
+    plot.title.position = "plot",
+    plot.subtitle = element_text(size = 11, hjust = 0, family = "sans", colour = "grey40"),
+    plot.background = element_rect(fill = "#f2f2f2", color = NA),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_blank(),
+    axis.title = element_blank(),
+    plot.caption.position = "plot",
+    plot.caption = element_text(hjust = 1, face = "italic", family = "sans"),
+    legend.position = "left"
+  )
+
+ggplotly(stacked, tooltip = "text") |>
+  layout(
+    legend = list(
+      orientation = "v",
+      x = -0.18, y = 0.5,
+      font = list(size = 11)
+    ),
+    hoverlabel = list(
+      bgcolor   = "#1a1a2e",
+      font      = list(color = "white", size = 12)
+    )
+  )
+```
+
+```{r}
+#| label: chart-b
+#| fig-width: 6
+#| fig-height: 4
+#| fig-cap: "(b) Renewable growth, 2018–2024"
+
+#Panel B-----
+ggplotly(
+  renewables_data |>
+    ggplot(aes(
+      x = Year,
+      y = Share,
+      color = Source,
+      group = Source,
+      text = paste0(
+        "<b>", as.character(Source), "</b><br>",
+        "Year: ", Year, "<br>",
+        "Energy: ", comma(round(Share, 1)), " kWh/person"
+      )
+    )) +
+    geom_line(linewidth = 1.2) +
+    geom_point(size = 2.5) +
+    scale_color_manual(
+      values = c(Hydropower = "#2980b9", Solar = "#f1c40f", Wind = "#1abc9c", Other_renewables =
+                   "#27ae60"),
+      labels = c(Hydropower = "Hydropower", Solar = "Solar",   Wind = "Wind",   Other_renewables = "Other renewables") 
+      ) +
+    scale_x_continuous(breaks = 2018:2024) +
+    scale_y_continuous(labels = comma, expand = expansion(mult = c(0, 0.05))) +
+    labs(
+      title = "Renewable energy growth",
+      subtitle = "kilowatt-hours per person · 2018–2024",
+      color = "Source",
+      caption = "Data source: Energy Institute – Statistical Review of World Energy (2025)"
+    ) +
+    theme_minimal() +
+    theme(
+      plot.title = element_text(size = 14, hjust = 0, face = "bold", family = "sans"),
+      plot.title.position = "plot",
+      plot.subtitle = element_text(size = 10, hjust = 0, colour = "grey40"),
+      plot.background = element_rect(fill = "#f2f2f2", color = NA),
+      panel.grid.minor = element_blank(),
+      panel.grid.major.x = element_blank(),
+      axis.title = element_blank(),
+      plot.caption.position = "plot",
+      plot.caption = element_text(hjust = 1, face = "italic"),
+      legend.position = "right"
+    ),
+  tooltip = "text"
+) |>
+  layout(hoverlabel = list(bgcolor = "#1a1a2e", font = list(color = "white", size = 12)))
+```
+
+## About this data
+
+Indonesia's per capita energy consumption grew from roughly 2,500 kWh in 1984 to over 10,000 kWh in 2024,with coal responsible for the majority of that increase. Rather than diversifying its energy mix as consumption rose, Indonesia became more reliant on fossil fuels with oil plateauing around 2004, gas growing modestly, and coal continuing to climb as the primary energy source. The right panel narrows the focus to 2018–2024 to assess renewable progress, where we see that solar and wind together account for under 20 kWh per person, less than 0.2% of total consumption. While the larger renewable block consists mainly of biomass and geothermal and hass been growing significantly, Indonesia's efforts are not enough. Against Indonesia's stated targets of 23% renewables by 2025 and net zero by 2060, the data suggest a significant implementation gap as overall energy demand is still rising. The renewable capacity must outpace a growing baseline, not just substitute for an existing one for the policy goals to be a reality.
