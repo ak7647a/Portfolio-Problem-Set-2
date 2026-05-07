@@ -1,8 +1,8 @@
-# Indonesia's Energy Transition
+# Portfolio item 1a: Indonesia's Energy Transition
  
 A research visualization examining Indonesia's per capita energy consumption from 1984 to 2024, with a focus on the country's progress toward its renewable energy targets.
  
-**[View The Report](https://ak7647a.github.io/Portfolio-Problem-Set-2/)** 
+**[View The Report](https://ak7647a.github.io/Portfolio-Problem-Set-2/)** | **[View Code](./portfolio1.qmd))**
 
  
 ## Research Topic
@@ -14,11 +14,9 @@ Indonesia's energy consumption has grown dramatically over the past four decades
 ## Data
  
 - **Source:** [Our World in Data — Per Capita Energy Consumption](https://ourworldindata.org/grapher/per-capita-energy-stacked?country=~IDN&overlay=sources)
-- **Coverage:** Indonesia, 1984–2024
-- **Variables:** Per capita energy consumption (kWh) by source — coal, oil, gas, solar, wind, biomass, geothermal, and other renewables
-- **Format:** Downloaded as `.csv` and cleaned in R
----
  
+---
+
 ## Approach
  
 The analysis is split into two visualizations:
