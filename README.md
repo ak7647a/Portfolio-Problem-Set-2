@@ -2,7 +2,7 @@
  
 A research visualization examining Indonesia's per capita energy consumption from 1984 to 2024, with a focus on the country's progress toward its renewable energy targets.
  
-**[View The Report](https://ak7647a.github.io/Portfolio1a/)** | **[View Code](./portfolio1.qmd))**
+**[View The Report](https://ak7647a.github.io/Portfolio1a/)** | **[View Code](./portfolio1.qmd)**
 
  
 ## Research Topic
